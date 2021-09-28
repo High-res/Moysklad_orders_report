@@ -10,6 +10,7 @@ from datetime import date
 from dateutil import parser as dtparser
 import configuration as config
 import Modules
+import DBConnect as db
 
 
 office = 'Офис г. Алматы'
@@ -42,14 +43,14 @@ yesterday_orders = []
 yesterdayOrd = []
 today_orders = []
 todayOrd = []
-times_0 = '2021-09-14'
-times_1 = '2021-09-13'
-times_2 = '2021-09-15'
+times_0 = '2021-09-27'
+times_1 = '2021-09-26'
+times_2 = '2021-09-28'
 # 
 
-todOrdd = '2021-09-08'
+todOrdd = '2021-09-27'
 def yesterdayOrders() :
-    getOrders = Modules.getOrders()
+    getOrders = db.getOrders()
 
     for get in getOrders :
         if str(times()[1]) == get['date'] :
@@ -64,7 +65,7 @@ def yestOrdr() :
 
 
 def todayOrders() :
-    getTodayOrders = Modules.getTodayOrders()
+    getTodayOrders = db.getTodayOrders()
 
     for get in getTodayOrders :
         if str(times()[1]) == get['date'] :
@@ -76,44 +77,44 @@ def todayOtgr() :
         todayOrd.append(todayOrders()[i]['id_order'])
     return todayOrd
 # print(yestOrdr())
-print(todayOrders())
 def notTodayOrders() :
-    # yestOrdr().clear()
-    # todayOtgr().clear()
    result = list(set(yestOrdr()) ^ set(todayOtgr()))
    return result
 # print(notTodayOrders())
 async def send_message(channel_id: int, text: int):
     await bot.send_message(channel_id, text)
 
-# def echo():
-    # Modules.today_otgruzka(times()[1], times()[0])
-#     # counters = Modules.getNeeds(times()[0], times()[2], times()[1])
-#     counters = Modules.getNeeds(times_0, times_2, times_1)
-#     # otgruzka = Modules.getOtgruzka(times()[1], config.mlogin, config.mpassword)
-#     otgruzka = Modules.getOtgruzka(times_1, config.mlogin, config.mpassword)
-#     f_s_sklad = f'{counters[0]:,}'
-#     # almaty_skald = f"Склад: {sklAlm} \nДата: {times()[0]} \nКоличество заказов: {counters[1]} \nСумма заказов: {f_s_sklad}"
-#     almaty_skald = f"Склад: {sklAlm} \nДата: {times_0} \nКоличество заказов: {counters[1]} \nСумма заказов: {f_s_sklad}"
-#     # otgruzka_otchet = f'Дата: {times()[1]} \nКоличество отгрузок: {otgruzka[0]} \nСумма отгрузок: {otgruzka[1]} \nНе отгружены: {notTodayOrders()}'
-#     otgruzka_otchet = f'Дата: {times_1} \nКоличество отгрузок: {otgruzka[0]} \nСумма отгрузок: {otgruzka[1]} \nНе отгружены: {notTodayOrders()}'
+async def echo():
+    Modules.today_otgruzka(times()[1], times()[0])
+    counters = Modules.getNeeds(times()[0], times()[2], times()[1])
+    # counters = Modules.getNeeds(times_0, times_2, times_1)
+    otgruzka = Modules.getOtgruzka(times()[1], config.mlogin, config.mpassword)
+    # otgruzka = Modules.getOtgruzka(times_1, config.mlogin, config.mpassword)
+    f_s_sklad = f'{counters[0]:,}'
+    almaty_skald = f"Склад: {sklAlm} \nДата: {times()[0]} \nКоличество заказов: {counters[1]} \nСумма заказов: {f_s_sklad}"
+    # almaty_skald = f"Склад: {sklAlm} \nДата: {times_0} \nКоличество заказов: {counters[1]} \nСумма заказов: {f_s_sklad}"
+    otgruzka_otchet = f'Дата: {times()[1]} \nКоличество отгрузок: {otgruzka[0]} \nСумма отгрузок: {otgruzka[1]} \nНе отгружены: {notTodayOrders()}'
+    # otgruzka_otchet = f'Дата: {times_1} \nКоличество отгрузок: {otgruzka[0]} \nСумма отгрузок: {otgruzka[1]} \nНе отгружены: {notTodayOrders()}'
     
-#     print(almaty_skald)
-#     print(otgruzka_otchet)
-#     # for i in config.admin_id:
-#     #     await send_message(channel_id=i, text = f"{otgruzka_otchet}")
-#     #     await send_message(channel_id=i, text = f"{almaty_skald}")
-#     # notTodayOrders().clear()
-# echo()
-# async def schedulerr():
-#     aioschedule.every().day.at('11:17').do(echo)
-#     while True:
-#         await aioschedule.run_pending()
-#         time.sleep(1)
+    for i in config.admin_id:
+        await send_message(channel_id=i, text = f"{otgruzka_otchet}")
+        await send_message(channel_id=i, text = f"{almaty_skald}")
+    if notTodayOrders() :
+        yestOrdr().clear()
+        todayOtgr().clear()
+        notTodayOrders().clear()
+        print('Очистили Список из не отгруженных товаров')
+        print(notTodayOrders())
 
-# async def on_startup(_):
-# #    asyncio.create_task(scheduler())
-#    asyncio.create_task(schedulerr())
+async def schedulerr():
+    aioschedule.every().day.at('20:00').do(echo)
+    while True:
+        await aioschedule.run_pending()
+        time.sleep(1)
 
-# if __name__ == "__main__" :
-#     executor.start_polling(dp, loop=loop, on_startup=on_startup)
+async def on_startup(_):
+#    asyncio.create_task(scheduler())
+   asyncio.create_task(schedulerr())
+
+if __name__ == "__main__" :
+    executor.start_polling(dp, loop=loop, on_startup=on_startup)
